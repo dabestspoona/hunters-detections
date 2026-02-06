@@ -1,5 +1,5 @@
-# cyberdefense_dac
-Cyber Defense Team's Detection as Code Pipeline
+# Hunters Detections
+An attempt to commit detections in Hunters as code
 
 Mandatory fields:
 
