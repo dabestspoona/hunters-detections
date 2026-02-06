@@ -1,0 +1,34 @@
+title: Attempt to Leave the AWS Organization
+id: 6fd3a6d4-3be6-4594-acac-7b5e16eddc48
+status: enabled
+description: >+
+  Attempts to leave the AWS Organization (unsuccessfully - will hit an
+  AccessDenied error). Security configurations are often defined at the
+  organization level (GuardDuty, SecurityHub, CloudTrail...). Leaving the
+  organization can disrupt or totally shut down these controls.
+
+event_source: cloudtrail_events
+alerts_enabled: false
+attack_techniques:
+  - T1211
+cluster_attributes:
+  - user_identity_arn
+  - event_name
+display_attributes:
+  - user_identity_arn
+  - user_identity_account_id
+  - source_ip_address
+  - event_name
+lead_summary_template: |
+  Attempt to Leave the AWS Organization
+lead_cluster_summary_template: |
+  {user_identity_arn} has attempted to leave the AWS Organization
+confidence: likely
+severity: moderate
+detection:
+  type: filter
+  selections:
+    selection1:
+      event_name|eq: LeaveOrganization
+      event_source|eq: organizations.amazonaws.com
+  state_compat_version: '1'
