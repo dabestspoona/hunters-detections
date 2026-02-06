@@ -1,0 +1,56 @@
+title: AWS - Elasticache Security Group Changes
+id: dd67d4e6-ff9d-4a57-905d-57f153a66964
+status: enabled
+description: >
+  This detection rule identifies instances when AWS ElastiCache security groups
+  are modified or deleted, which could indicate potential malicious activity
+  aimed at bypassing security controls. Security groups play a critical role in
+  governing the access permissions to ElastiCache resources, and unauthorized
+  changes could facilitate unauthorized access or data breaches. The rule
+  utilizes specific queries targeting AWS CloudTrail logs to monitor API actions
+  that signify changes in security group configurations. The significance is
+  amplified given that adversaries might exploit such vulnerabilities to execute
+  defense evasion strategies, enhancing their unauthorized data access
+  capabilities. Investigative steps are provided for determining the legitimacy
+  of any detected events, enabling security teams to respond effectively to
+  potential threats.
+event_source: cloudtrail_events
+alerts_enabled: false
+attack_techniques:
+  - T1562
+  - T1562.007
+cluster_attributes:
+  - user_identity_session_context_session_issuer_user_name
+  - additional_event_data
+  - user_identity_arn
+  - user_identity_type
+  - user_agent
+  - source_ip_address
+  - response_elements
+display_attributes:
+  - user_identity_user_name
+  - event_name
+  - aws_region
+  - event_source
+  - event_type
+  - user_identity_type
+  - user_agent
+  - user_identity_arn
+  - source_ip_address
+lead_summary_template: >
+  {user_identity_arn} performed/attempted to perform {event_type} against
+  Elasticache
+lead_cluster_summary_template: ''
+confidence: possible
+severity: moderate
+detection:
+  type: filter
+  selections:
+    selection1:
+      event_name|in:
+        - DeleteCacheSecurityGroup
+        - AuthorizeCacheSecurityGroupIngress
+        - RevokeCacheSecurityGroupEgress
+        - CreateCacheSecurityGroup
+      event_source|eq: elasticache.amazonaws.com
+  state_compat_version: '1'
