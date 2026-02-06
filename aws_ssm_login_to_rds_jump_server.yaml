@@ -1,0 +1,24 @@
+title: AWS - SSM Login to RDS Jump Server
+id: cb259ae7-a6bc-4254-997d-5769c2fe6a43
+status: enabled
+description: Alert on SSM Logins to Jump Server
+alerts_enabled: false
+alerts_confidence_threshold: very_unlikely
+cluster_attributes: 
+  - user_identity_arn
+display_attributes: []
+lead_summary_template: {USER_IDENTITY_ARN} performed SSM login to RDS jump server
+lead_cluster_summary_template: SSM Login to RDS JumpServer
+confidence: possible
+severity: major
+detection: {
+refresh_interval: 10m
+                sql: SELECT\nCAST(event_time as TIMESTAMP) as start_time\nCAST(event_time as TIMESTAMP) as end_time\nOBJECT_CONSTRUCT_KEEP_NULL('AWS_CLOUDTRAIL' ARRAY_CONSTRUCT_COMPACT(METADATA$UUID)) event_ids\nARRAY_CONSTRUCT_COMPACT(METADATA$DATAFLOW_ID) as dataflow_ids\nCAST(METADATA$INSERTION_TIME AS TIMESTAMP) as last_event_insertion_time\nUSER_IDENTITY_ARN\nRECIPIENT_ACCOUNT_ID \nUSER_AGENT \nSOURCE_IP_ADDRESS\nFROM AWS_CLOUDTRAIL\nWHERE EVENT_NAME = 'StartSession' \nAND REQUEST_PARAMETERS:target = 'i-03fedf0942d68454c'\n
+                tables: {
+                    time_tracked_table: {
+                        name: AWS_CLOUDTRAIL
+                    }
+                }
+                type: raw_sql_auto
+            }
+        }

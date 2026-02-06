@@ -1,0 +1,47 @@
+title: Google Workspace - External User Added to Shared Drive
+id: 8875776-0049-40f7-996f-4e64a963kwe3
+status: enabled
+description: Detection for External User Added to Shared Drive
+alerts_enabled: true
+alerts_confidence_threshold: likely
+severity: major
+confidence: likely
+lead_summary_template: '{actor_email} added an external user to a Google Team Drive {drive_name}'
+lead_cluster_summary_template: '{actor_email} added an external user to a Google Team Drive {drive_name}'
+cluster_attributes:
+  - actor_email
+  - target_user
+  - drive_name
+display_attributes:
+  - actor_email
+  - target_user
+  - drive_name
+detection:
+  tables:
+    time_tracked_table:
+      name: GSUITE_ACTIVITY
+  type: raw_sql_auto
+  refresh_interval: 10 minutes
+  sql: |
+    SELECT 
+      ID_TIME as start_time,
+      ID_TIME as end_time,
+      METADATA$INSERTION_TIME as last_event_insertion_time,
+      OBJECT_CONSTRUCT_KEEP_NULL('GSUITE_ACTIVITY', ARRAY_CONSTRUCT_COMPACT(METADATA$UUID)) as event_ids,
+      ARRAY_CONSTRUCT(METADATA$DATAFLOW_ID) as DATAFLOW_IDS, 
+      ID_TIME, 
+      ACTOR_EMAIL,
+      EVENT_PARAMETERS:target::varchar as target_user,
+      EVENT_PARAMETERS:doc_title::varchar as drive_name,
+      EVENT_PARAMETERS:membership_change_type::varchar as membership_change_type,
+      EVENT_PARAMETERS:visibility::varchar as visibility,
+      EVENT_PARAMETERS:added_role::varchar as added_role,
+      EVENT_PARAMETERS:owner_is_shared_drive::varchar as owner_is_shared_drive,
+      EVENT_PARAMETERS:owner_is_team_drive::varchar as owner_is_team_drive,
+      EVENT_PARAMETERS:owner::varchar as owner
+    FROM 
+      GSUITE_ACTIVITY
+    WHERE 
+      EVENT_NAME = 'shared_drive_membership_change'
+      AND membership_change_type = 'add_to_shared_drive' 
+      AND target_user NOT ILIKE '%onepeloton.com'

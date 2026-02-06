@@ -1,0 +1,65 @@
+title: Google Workspace - CAD Downloads - API Deployed
+id: f546a20d-b1c9-4f68-a6cd-cc63775cafea
+status: enabled
+description: Detection for users downloading CAD files in bulk
+alerts_enabled: false
+alerts_confidence_threshold: very_unlikely
+attack_techniques: []
+cluster_attributes:
+- actor_email
+display_attributes:
+- actor_email
+- drive_name
+- doc_type
+- owner
+lead_summary_template: '{actor_email} may have possibly downloaded multiple CAD files'
+lead_cluster_summary_template: '{actor_email} may have possibly downloaded multiple CAD files'
+confidence: possible
+severity: moderate
+detection:
+  type: raw_sql_auto
+  refresh_interval: 24h
+  sql: |
+    SELECT
+      ID_TIME as start_time,
+      ID_TIME as end_time,
+      METADATA$INSERTION_TIME as last_event_insertion_time,
+      OBJECT_CONSTRUCT_KEEP_NULL('GSUITE_ACTIVITY', ARRAY_CONSTRUCT_COMPACT(METADATA$UUID)) as event_ids,
+      ARRAY_CONSTRUCT(METADATA$DATAFLOW_ID) as DATAFLOW_IDS,
+      ACTOR_EMAIL,
+      EVENT_PARAMETERS:doc_title::varchar AS drive_name,
+      EVENT_PARAMETERS:doc_type::varchar AS doc_type,
+      EVENT_PARAMETERS:owner::varchar AS owner,
+      COUNT(*) OVER (PARTITION BY ACTOR_EMAIL) as file_count
+    FROM
+      GSUITE_ACTIVITY
+    WHERE
+      EVENT_NAME = 'download'
+      AND EVENT_PARAMETERS:originating_app_id IS NULL
+      AND (
+        EVENT_PARAMETERS:doc_title ILIKE '%.sldprt'
+        OR EVENT_PARAMETERS:doc_title ILIKE '%.sldasm'
+        OR EVENT_PARAMETERS:doc_title ILIKE '%.slddrw'
+        OR EVENT_PARAMETERS:doc_title ILIKE '%.slm'
+        OR EVENT_PARAMETERS:doc_title ILIKE '%.step'
+        OR EVENT_PARAMETERS:doc_title ILIKE '%.stp'
+        OR EVENT_PARAMETERS:doc_title ILIKE '%.iges'
+        OR EVENT_PARAMETERS:doc_title ILIKE '%.igs'
+        OR EVENT_PARAMETERS:doc_title ILIKE '%.x_t'
+        OR EVENT_PARAMETERS:doc_title ILIKE '%.x_b'
+        OR EVENT_PARAMETERS:doc_title ILIKE '%.stl'
+        OR EVENT_PARAMETERS:doc_title ILIKE '%.dwg'
+        OR EVENT_PARAMETERS:doc_title ILIKE '%.dxf'
+        OR EVENT_PARAMETERS:doc_title ILIKE '%.ai'
+        OR EVENT_PARAMETERS:doc_title ILIKE '%.sch'
+        OR EVENT_PARAMETERS:doc_title ILIKE '%.brd'
+        OR EVENT_PARAMETERS:doc_title ILIKE '%.dsn'
+        OR EVENT_PARAMETERS:doc_title ILIKE '%.olb'
+        OR EVENT_PARAMETERS:doc_title ILIKE '%.schdoc'
+        OR EVENT_PARAMETERS:doc_title ILIKE '%.pcbdoc'
+      )
+    QUALIFY
+      COUNT(*) OVER (PARTITION BY ACTOR_EMAIL) > 10
+  tables:
+    time_tracked_table:
+      name: GSUITE_ACTIVITY

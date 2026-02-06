@@ -1,0 +1,44 @@
+title: Github - Overly Permissive Personal Access Token
+id: 88cc031-900c-433a-b154-5027f24c892j
+status: enabled
+description: Creation of Github Personal Access Token with admin token scopes
+alerts_enabled: false
+alerts_confidence_threshold: very_unlikely
+attack_techniques: []
+cluster_attributes:
+  - actor
+display_attributes: []
+lead_summary_template: '{ACTOR} created Github Personal Access Token with admin token scopes'
+lead_cluster_summary_template: '{ACTOR} created Github Personal Access Token with admin token scopes'
+confidence: possible
+severity: major
+detection:
+  type: raw_sql_auto
+  refresh_interval: 10m
+  sql: |
+    SELECT
+      EVENT_TIME AS start_time,
+      EVENT_TIME AS end_time,
+      METADATA$INSERTION_TIME AS last_event_insertion_time,
+      OBJECT_CONSTRUCT_KEEP_NULL('GITHUB_AUDIT_LOGS', ARRAY_CONSTRUCT_COMPACT(METADATA$UUID)) AS event_ids,
+      ARRAY_CONSTRUCT_COMPACT(METADATA$DATAFLOW_ID) AS dataflow_ids,
+      ACTOR,
+      ACTION,
+      RAW:oauth_credential_type::varchar AS oauth_credential_type,
+      RAW:operation_type::varchar AS operation_type,
+      RAW:token_scopes::varchar AS token_scopes,
+      raw:external_identity_nameid::varchar as user_email,
+      raw:token_id::varchar as token_id,
+      raw:actor_ip::varchar as actor_ip,
+      raw:hashed_token::varchar as hashed_token,
+      raw:actor_is_bot::varchar as actor_is_bot,
+      raw:user_agent::varchar as user_agent
+    FROM
+      GITHUB_AUDIT_LOGS
+    WHERE
+      ACTION ILIKE 'org_credential_authorization.grant'
+      AND oauth_credential_type ILIKE 'Personal%Access%Token%'
+      AND operation_type ILIKE 'create'
+      AND token_scopes ILIKE '%admin%'
+  tables:
+    time_tracked_table:

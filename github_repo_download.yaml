@@ -1,0 +1,115 @@
+title: Github Audit logs - Repo Download Zip
+id: 28beb95c-230d-4527-8476-5f436c49041c
+status: enabled
+description: Alert on Repo Download Zip event types on github audit logs
+alerts_enabled: true
+attack_techniques:
+  - T1567.001
+cluster_attributes:
+  - raw_actor
+  - raw_user_agent
+  - raw_actor_ip
+  - raw_actor_id
+  - raw_repo_id
+  - raw_repo
+display_attributes:
+  - event_time
+  - raw_actor
+  - raw_actor_id
+  - raw_actor_ip
+  - raw_hashed_token
+  - raw_repo
+  - raw_repo_id
+  - raw_token_id
+  - raw_user_agent
+lead_summary_template: github-repo_download_zip
+lead_cluster_summary_template: '{raw_actor} performed Zip download of internal repository {raw_repo}'
+confidence: likely
+severity: major
+detection:
+  type: filter
+  selections:
+    selection1:
+      raw_actor|not: '%bot%'
+      raw_repo|in:
+        - pelotoncycle/android
+        - pelotoncycle/jupiter
+        - pelotoncycle/api
+        - pelotoncycle/content
+        - pelotoncycle/Argon
+        - pelotoncycle/iOS_Retail
+        - pelotoncycle/serverless_lambdas
+        - pelotoncycle/tf-platform
+        - pelotoncycle/crescendo-instructor
+        - pelotoncycle/web-tv
+        - pelotoncycle/siraya
+        - pelotoncycle/shop-platform
+        - pelotoncycle/app-web
+        - pelotoncycle/voice-fed-k8s pelotoncycle/ds-dbt
+        - pelotoncycle/commercetools-data-migration
+        - pelotoncycle/carbon-scalr-setup
+        - pelotoncycle/user-identity-k8s-manifests
+        - pelotoncycle/oracle-kös
+        - pelotoncycle/personalization-microservices-k8s
+        - pelotoncycle/data-engineering-airflow-dags
+        - pelotoncycle/logistics-interface-service
+        - pelotoncycle/alchemist-personalization
+        - pelotoncycle/datastores-infra
+        - pelotoncycle/payments-platform
+        - pelotoncycle/datastores-infra
+        - pelotoncycle/payments-platform
+        - pelotoncycle/managed-jenkins
+        - pelotoncycle/odyssey
+        - pelotoncycle/alchemist-platform
+        - pelotoncycle/voice-nlu
+        - pelotoncycle/looker-dw-pg
+        - pelotoncycle/sre-k8s
+        - pelotoncycle/actions-runner-controller-k8s
+        - pelotoncycle/cosmos-client
+        - pelotoncycle/cdw-dbt
+        - pelotoncycle/peloblog
+        - pelotoncycle/personalization-microservices
+        - pelotoncycle/cloudflare-carbon-configs
+        - pelotoncycle/music-admin
+        - pelotoncycle/oracle
+        - pelotoncycle/sfdc
+        - pelotoncycle/token-exchange-k8s-manifests
+        - pelotoncycle/peloton-jenkins
+        - pelotoncycle/auth-orchestration-k8s-manifests
+        - pelotoncycle/user-identity
+        - pelotoncycle/engagement-microservices
+        - pelotoncycle/device-management-k8s
+event_source_mapping:
+  data_type: github-audit-logs
+  event_attributes:
+    - name: metadata_event_time
+      expression: METADATA$EVENT_TIME
+    - name: metadata_ingestion_time
+      expression: METADATA$INGESTION_TIME
+    - name: metadata_uuid
+      expression: METADATA$UUID
+    - name: raw_actor
+      expression: '"RAW":"actor"::VARCHAR'
+    - name: raw_actor_id
+      expression: '"RAW":"actor_id"::VARCHAR'
+    - name: raw_actor_ip
+      expression: '"RAW":"actor_ip"::VARCHAR'
+    - name: raw_created_at
+      expression: '"RAW":"created_at"::VARCHAR'
+    - name: raw_document_id
+      expression: '"RAW":"_document_id"::VARCHAR'
+    - name: raw_hashed_token
+      expression: '"RAW":"hashed_token"::VARCHAR'
+    - name: raw_repo
+      expression: '"RAW":"repo"::VARCHAR'
+    - name: raw_repo_id
+      expression: '"RAW":"repo_id"::VARCHAR'
+    - name: raw_timestamp
+      expression: '"RAW":"@timestamp"::VARCHAR'
+    - name: raw_token_id
+      expression: '"RAW":"token_id"::VARCHAR'
+    - name: raw_user_agent
+      expression: '"RAW":"user_agent"::VARCHAR'
+    - name: event_time
+      expression: event_time
+  event_type: repo.download_zip

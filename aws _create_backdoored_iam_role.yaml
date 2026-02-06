@@ -1,0 +1,40 @@
+title: AWS - Create a Backdoored IAM Role
+id: 8875776-0049-40f7-996f-05d4714bb19e
+status: enabled
+description: Establishes persistence by creating a new backdoor role with a trust policy allowing it to be assumed from an external, fictitious attack AWS account.
+alerts_enabled: true
+alerts_confidence_threshold: likely
+severity: major
+confidence: likely
+lead_summary_template: '{user_identity_arn} created persistence by creating a new backdoor role'
+lead_cluster_summary_template: '{user_identity_arn} created persistence by creating a new backdoor role'
+cluster_attributes: 
+  - user_identity_arn
+detection:
+  tables:
+    time_tracked_table:
+      name: AWS_CLOUDTRAIL
+  type: raw_sql_auto
+  refresh_interval: 10 minutes
+  sql: |
+    SELECT 
+      EVENT_TIME AS start_time, 
+      EVENT_TIME AS end_time, 
+      METADATA$INSERTION_TIME as last_event_insertion_time,
+      OBJECT_CONSTRUCT_KEEP_NULL('AWS_CLOUDTRAIL', ARRAY_CONSTRUCT_COMPACT(METADATA$UUID)) as event_ids,
+      ARRAY_CONSTRUCT(METADATA$DATAFLOW_ID) as DATAFLOW_IDS,
+      EVENT_NAME, 
+      REQUEST_PARAMETERS, 
+      RESPONSE_ELEMENTS, 
+      REGEXP_SUBSTR(REQUEST_PARAMETERS, '([0-9]*):root', 1, 1, 'e', 1) AS External_Account, 
+      RECIPIENT_ACCOUNT_ID, 
+      SOURCE_IP_ADDRESS,
+      USER_AGENT, 
+      USER_IDENTITY_ARN,
+      USER_IDENTITY_ACCESS_KEY_ID 
+    FROM 
+      AWS_CLOUDTRAIL 
+    WHERE 
+      EVENT_NAME = 'CreateRole' 
+      AND EVENT_SOURCE = 'iam.amazonaws.com' 
+      AND REQUEST_PARAMETERS ILIKE '%Principal%root%'

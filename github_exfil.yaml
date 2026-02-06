@@ -1,0 +1,63 @@
+title: Github exfilteration
+id: 96a67ba8-1d6f-4577-b34c-85b8d6529503
+status: enabled
+description: Github Exfilteration
+alerts_enabled: true
+attack_techniques: []
+cluster_attributes:
+- actor
+display_attributes:
+- event_time
+- actor
+- raw_actor_ip
+- raw_user_agent
+- count_distinct_repository
+- aggregate_repository
+lead_summary_template: 'Github Exfiltration of {count_distinct_repository} repositories by {actor} '
+lead_cluster_summary_template: 'Github Exfiltration of {count_distinct_repository} repositories by {actor} '
+confidence: likely
+severity: moderate
+detection:
+type: group_by
+selections:
+selection1:
+action|eq: git.clone
+actor|not:
+- '%bot%'
+- deploy_key
+- '%jenkins%'
+- '%ahab%'
+group_by:
+timeframe: 30m
+attributes:
+- actor
+- raw_actor_ip
+- raw_user_agent
+statistics:
+- count_distinct|repository
+- aggregate|repository
+group_selections:
+groupSelection0:
+count_distinct|repository|gt: 10
+event_source_mapping:
+data_type: github-audit-logs
+event_attributes:
+- name: action
+expression: ACTION
+- name: actor
+expression: ACTOR
+- name: is_repository_public
+expression: IS_REPOSITORY_PUBLIC
+- name: metadata_event_time
+expression: METADATA$EVENT_TIME
+- name: organization
+expression: ORGANIZATION
+- name: raw_actor_ip
+expression: '"RAW":"actor_ip"::VARCHAR'
+- name: raw_user_agent
+expression: '"RAW":"user_agent"::VARCHAR'
+- name: repository
+expression: REPOSITORY
+- name: event_time
+expression: event_time
+event_type: git.clone

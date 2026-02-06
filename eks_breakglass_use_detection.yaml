@@ -1,0 +1,22 @@
+title: EKS - Breakglass Usage - API Deployed
+id: 8875776-0049-40f7-996f-4e64a963u92u
+status: enabled
+description: Detection for use Breakglass accounts in AWS
+alerts_enabled: false
+severity: major
+confidence: possible
+lead_summary_template: '{username} used a breakglass account'
+lead_cluster_summary_template: 'Unexpected use of breakglass accounts'
+cluster_attributes: 
+ - username
+detection:
+  tables:
+    time_tracked_table:
+      name: AWS_EKS_API_SERVER_AUDIT_LOGS
+  type: raw_sql_auto
+  refresh_interval: 10 minutes
+  sql: |
+    select STAGE_TIMESTAMP as start_time, STAGE_TIMESTAMP as end_time, STAGE_TIMESTAMP as last_event_insertion_time, METADATA$UUID as event_ids, ARRAY_CONSTRUCT(METADATA$DATAFLOW_ID) as DATAFLOW_IDS, AUDIT_ID, LEVEL, STAGE, REQUEST_URI, VERB, USERNAME, USER_GROUPS, USER_ACCESS_KEY_IDS, USER_ARNS, SOURCE_IPS, USER_AGENT, OBJECT_REF:namespace::varchar as namespace, OBJECT_REF:resource::varchar as resource, OBJECT_REF:name::varchar as name, OBJECT_REF:subresource::varchar as subresource, ANNOTATIONS:"authorization.k8s.io/decision"::STRING AS decision,ANNOTATIONS:"authorization.k8s.io/reason"::STRING AS reason, RESPONSE_STATUS_CODE
+    from RAW.AWS_EKS_API_SERVER_AUDIT_LOGS
+    where USERNAME ilike '%peloton%'
+      AND reason ilike '%breakglass%'
