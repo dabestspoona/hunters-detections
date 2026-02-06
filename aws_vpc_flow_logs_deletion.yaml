@@ -1,0 +1,30 @@
+title: VPC Flow Logs Deleted
+id: 5c7480e1-83fc-483b-abda-198f7abebfad
+status: enabled
+description: Removes a VPC Flog Logs configuration from a VPC.
+event_source: cloudtrail_events
+alerts_enabled: false
+attack_techniques:
+  - T1211
+cluster_attributes:
+  - user_identity_arn
+  - request_parameters
+  - response_elements
+  - user_identity_account_id
+  - recipient_account_id
+display_attributes:
+  - user_identity_arn
+  - response_elements
+  - request_parameters
+  - source_ip_address
+lead_summary_template: '{user_identity_arn} possibly deleted VPC flow logs'
+lead_cluster_summary_template: ''
+confidence: likely
+severity: moderate
+detection:
+  type: filter
+  selections:
+    selection1:
+      event_name|eq: DeleteFlowLogs
+      request_parameters|cslike: '%Delete%'
+  state_compat_version: '1'
