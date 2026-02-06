@@ -1,0 +1,30 @@
+title: Exfiltrate an AMI by Sharing It
+id: c03edb5c-57d8-4ecc-9253-c7707640cf9e
+status: enabled
+description: Exfiltrates an AMI by sharing it with an external AWS account.
+event_source: cloudtrail_events
+alerts_enabled: false
+attack_techniques:
+  - T1567.002
+cluster_attributes:
+  - user_identity_arn
+  - request_parameters
+display_attributes:
+  - user_identity_arn
+  - user_identity_type
+  - user_agent
+  - source_ip_address
+  - request_parameters
+lead_summary_template: |-
+  {user_identity_arn} has modified an AMI
+  {request_parameters}
+lead_cluster_summary_template: ''
+confidence: likely
+severity: major
+detection:
+  type: filter
+  selections:
+    selection1:
+      event_name|eq: ModifyImageAttribute
+      request_parameters|cslike: '%launchPermission":{"add":{"items":[{"userId"%'
+  state_compat_version: '1'
