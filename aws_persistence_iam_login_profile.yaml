@@ -1,0 +1,39 @@
+title: Create a Login Profile on an IAM User
+id: bf745e0b-4909-4824-ae7b-1cd06ec4b114
+status: enabled
+description: >+
+  Establishes persistence by creating a Login Profile on an existing IAM user.
+  This allows an attacker to access an IAM user intended to be used
+  programmatically through the AWS console usual login process.
+
+event_source: cloudtrail_events
+alerts_enabled: false
+attack_techniques:
+  - T1068
+cluster_attributes:
+  - user_identity_account_id
+  - user_identity_arn
+  - user_agent
+  - source_ip_address
+  - response_elements
+  - request_parameters
+display_attributes:
+  - user_identity_arn
+  - user_identity_account_id
+  - user_agent
+  - source_ip_address
+  - request_parameters
+  - response_elements
+lead_summary_template: '{user_identity_arn} updated a user login profile.'
+lead_cluster_summary_template: '{user_identity_arn} created a Login Profile on an IAM User'
+confidence: likely
+severity: moderate
+detection:
+  type: filter
+  selections:
+    selection1:
+      event_name|in:
+        - CreateLoginProfile
+        - UpdateLoginProfile
+      event_source|eq: iam.amazonaws.com
+  state_compat_version: '1'
