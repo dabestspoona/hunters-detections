@@ -1,0 +1,42 @@
+title: S3 backdoor via Bucket Policy
+id: 550b4ca-31f3-41fc-b1c6-a766a5ddac5r
+status: enabled
+description: Cloudtrail - Overly Permissive PutBucketPolicy
+event_source: ''
+alerts_enabled: true
+attack_techniques: []
+cluster_attributes:
+  - user_identity_arn
+display_attributes: []
+lead_summary_template: >-
+  {USER_IDENTITY_ARN} modified S3 bucket policy to grant root access to an
+  external account {External_Account}
+lead_cluster_summary_template: >-
+  {USER_IDENTITY_ARN} modified S3 bucket policy to grant root access to an
+  external account {External_Account}
+confidence: possible
+severity: major
+detection:
+  type: raw_sql_auto
+  refresh_interval: 10m
+  sql: |
+    SELECT
+        EVENT_TIME AS start_time,
+        EVENT_TIME AS end_time,
+        METADATA$INSERTION_TIME AS last_event_insertion_time,
+        OBJECT_CONSTRUCT_KEEP_NULL('AWS_CLOUDTRAIL', ARRAY_CONSTRUCT_COMPACT(METADATA$UUID)) AS event_ids,
+        ARRAY_CONSTRUCT_COMPACT(METADATA$DATAFLOW_ID) AS dataflow_ids,
+        REGEXP_SUBSTR(REQUEST_PARAMETERS,'([0-9]*):root', 1, 1, 'e', 1) AS External_Account,
+        RECIPIENT_ACCOUNT_ID,
+        SOURCE_IP_ADDRESS,
+        USER_AGENT,
+        USER_IDENTITY_ARN,
+        ERROR_CODE,
+        RESOURCES
+    FROM
+        AWS_CLOUDTRAIL
+    WHERE
+        EVENT_NAME in ('PutBucketPolicy') AND EVENT_SOURCE in ('s3.amazonaws.com') AND REQUEST_PARAMETERS ilike '%Principal%root%' AND RECIPIENT_ACCOUNT_ID != External_Account
+  tables:
+    time_tracked_table:
+      name: AWS_CLOUDTRAIL
