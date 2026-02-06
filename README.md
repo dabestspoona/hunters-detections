@@ -1,5 +1,5 @@
 # Hunters Detections
-An attempt to commit detections in Hunters as code
+An attempt to commit detections in Hunters as code, can easily converted to detections in Vega, Panther, etc
 
 Mandatory fields:
 
